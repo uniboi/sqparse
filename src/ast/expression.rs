@@ -4,6 +4,8 @@ use crate::ast::{
 };
 use crate::token::{LiteralToken, Token};
 
+use super::PreprocessedStatement;
+
 /// An expression.
 ///
 /// Many types of expressions are recursive, containing other expressions. [Precedence] is used to
@@ -32,6 +34,7 @@ pub enum Expression<'s> {
     Delegate(DelegateExpression<'s>),
     Vector(VectorExpression<'s>),
     Expect(ExpectExpression<'s>),
+	Preprocessed(PreprocessedStatement<'s>),
 }
 
 /// An expression enclosed in parentheses.
@@ -132,6 +135,14 @@ pub struct LambdaExpression<'s> {
     pub value: Box<Expression<'s>>,
 }
 
+/// A Preprocessor statement containing expressions
+/// 
+/// TODO: Grammar
+/// 
+#[derive(Debug, Clone)]
+pub struct PreprocessorIf<'s> {
+	pub if_: &'s Token<'s>
+}
 /// A delegate expression.
 ///
 /// Grammar: `delegate` [Expression] `:` [Expression]

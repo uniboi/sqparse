@@ -85,6 +85,8 @@ impl<'s> Iterator for TokenIter<'s> {
                 };
                 self.val = remaining;
 
+                println!("{:?}", &token);
+
                 // Store the new token, so continuing comments can be attached to it before either
                 // a newline or another token is encountered.
                 // If there is an existing token stored, that existing token can now be yielded.

@@ -47,6 +47,9 @@ fn closing_token(opening: TokenType) -> Option<TokenType> {
         TokenType::Terminal(TerminalToken::OpenAttributes) => {
             Some(TokenType::Terminal(TerminalToken::CloseAttributes))
         }
+		TokenType::Terminal(TerminalToken::PreprocessorIf) => {
+			Some(TokenType::Terminal(TerminalToken::PreprocessorEndIf))
+		}
         _ => None,
     }
 }

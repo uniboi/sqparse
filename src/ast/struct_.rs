@@ -1,13 +1,15 @@
 use crate::ast::{Identifier, Type, VarInitializer};
 use crate::token::Token;
 
+use super::Preprocessable;
+
 /// Anonymous definition of a struct.
 ///
 /// Grammar: `{` [StructProperty]* `}`
 #[derive(Debug, Clone)]
 pub struct StructDefinition<'s> {
     pub open: &'s Token<'s>,
-    pub properties: Vec<StructProperty<'s>>,
+    pub properties: Vec<Preprocessable<'s, StructProperty<'s>>>,
     pub close: &'s Token<'s>,
 }
 

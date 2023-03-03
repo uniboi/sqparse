@@ -110,6 +110,16 @@ pub enum ContextType {
     /// ```
     BlockStatement,
 
+	/// All of a preprocessor `if` statement.
+	/// 
+	/// # Example
+	/// ```text
+	///   #if CONDITION
+	///       print("hello")
+	///   #elseif
+	/// ```
+	PreProcessorIf,
+
     /// All of an `if` statement.
     ///
     /// # Example
@@ -598,6 +608,7 @@ impl std::fmt::Display for ContextType {
             ContextType::FunctionCaptureList => write!(f, "function capture list"),
             ContextType::Type => write!(f, "type"),
             ContextType::GenericArgumentList => write!(f, "generic type list"),
+            ContextType::PreProcessorIf => write!(f, "preprocessor if"),
         }
     }
 }

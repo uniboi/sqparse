@@ -109,7 +109,7 @@ define_terminals! {
         Instanceof => "instanceof",
         Static => "static",
 
-        // _re extensions
+        // r2 extensions
         DelayThread => "delaythread"                        if Flavor::SquirrelRespawn,
         Expect => "expect"                                  if Flavor::SquirrelRespawn,
         FunctionRef => "functionref"                        if Flavor::SquirrelRespawn,
@@ -127,7 +127,7 @@ define_terminals! {
 
     symbols {
         // Three-char symbols
-        ThreeWay => "<=>",
+        ThreeWay => "<=>" if Flavor::Squirrel3,
         Ellipsis => "...",
 
         // Two-char symbols
@@ -173,7 +173,14 @@ define_terminals! {
         Colon => ":",
         Question => "?",
         Semicolon => ";",
-        At => "@"
+        At => "@",
+
+		// Preprocessor symbols
+        PreprocessorIf => "#if" 			if Flavor::SquirrelRespawn,
+        PreprocessorElse => "#else" 		if Flavor::SquirrelRespawn,
+        PreprocessorElseIf => "#elseif" 	if Flavor::SquirrelRespawn,
+        PreprocessorEndIf => "#endif" 		if Flavor::SquirrelRespawn,
+        PreprocessorDocument => "#document" if Flavor::SquirrelRespawn
     }
 }
 

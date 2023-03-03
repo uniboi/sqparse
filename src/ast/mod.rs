@@ -23,6 +23,7 @@ mod struct_;
 mod table;
 mod type_;
 mod variable;
+mod preprocessed;
 
 pub use self::array::*;
 pub use self::class::*;
@@ -41,6 +42,7 @@ pub use self::struct_::*;
 pub use self::table::*;
 pub use self::type_::*;
 pub use self::variable::*;
+pub use self::preprocessed::*;
 
 /// Contains statements that form a program.
 ///

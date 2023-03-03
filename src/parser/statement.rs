@@ -3,7 +3,7 @@ use crate::ast::{
     ConstructorDefinitionStatement, ContinueStatement, DelayThreadStatement, DoWhileStatement,
     EmptyStatement, EnumDefinitionStatement, ExpressionStatement, ForStatement, ForeachStatement,
     FunctionDefinitionStatement, GlobalStatement, GlobalizeAllFunctionsStatement, IfStatement,
-    Precedence, ReturnStatement, SeparatedList1, Statement, StatementType,
+    Precedence, PreprocessedStatement, ReturnStatement, SeparatedList1, Statement, StatementType,
     StructDefinitionStatement, SwitchStatement, ThreadStatement, ThrowStatement, TryCatchStatement,
     Type, TypeDefinitionStatement, UntypedStatement, VarDefinition, VarDefinitionStatement,
     WaitStatement, WaitThreadSoloStatement, WaitThreadStatement, WhileStatement, YieldStatement,
@@ -111,6 +111,7 @@ pub fn statement_type(tokens: TokenList) -> ParseResult<StatementType> {
         })
         .or_try(|| untyped_statement(tokens).map_val(StatementType::Untyped))
         .or_try(|| expression_statement(tokens).map_val(StatementType::Expression))
+        .or_try(|| preprocessed_if_statement(tokens).map_val(StatementType::Preprocessed))
         .with_context_from(ContextType::Statement, tokens)
         .or_error(|| tokens.error(ParseErrorType::ExpectedStatement))
 }
@@ -135,6 +136,31 @@ pub fn block_statement(tokens: TokenList) -> ParseResult<BlockStatement> {
                         open,
                         statements,
                         close,
+                    },
+                ))
+            },
+        )
+}
+
+pub fn preprocessed_if_statement(tokens: TokenList) -> ParseResult<PreprocessedStatement> {
+    tokens
+        .terminal(TerminalToken::PreprocessorIf)
+        .determines_and_opens(
+            ContextType::PreProcessorIf,
+            |tokens| tokens.terminal(TerminalToken::PreprocessorEndIf),
+            |tokens, open, close| {
+                let (tokens, condition) = expression(tokens, Precedence::None)?;
+                let r = tokens.many_until_ended(statement);
+                println!("{r:#?}");
+                let (tokens, statements) = r?;
+				// TODO: elseif, else
+                Ok((
+                    tokens,
+                    PreprocessedStatement {
+                        if_: open,
+                        condition,
+                        statements,
+                        endif_: close,
                     },
                 ))
             },

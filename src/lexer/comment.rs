@@ -13,10 +13,10 @@ pub fn try_comment(val: ParseStr) -> Result<Option<(Comment, ParseStr)>, LexerEr
         };
     }
 
-    if let Some(remaining) = val.strip_prefix("#") {
-        let (comment_val, remaining) = get_rest_of_line(remaining);
-        return Ok(Some((Comment::ScriptStyle(comment_val), remaining)));
-    }
+    // if let Some(remaining) = val.strip_prefix("#") {
+    //     let (comment_val, remaining) = get_rest_of_line(remaining);
+    //     return Ok(Some((Comment::ScriptStyle(comment_val), remaining)));
+    // }
 
     if let Some(remaining) = val.strip_prefix("//") {
         let (comment_val, remaining) = get_rest_of_line(remaining);
