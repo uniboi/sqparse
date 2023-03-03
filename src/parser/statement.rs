@@ -3,10 +3,11 @@ use crate::ast::{
     ConstructorDefinitionStatement, ContinueStatement, DelayThreadStatement, DoWhileStatement,
     EmptyStatement, EnumDefinitionStatement, ExpressionStatement, ForStatement, ForeachStatement,
     FunctionDefinitionStatement, GlobalStatement, GlobalizeAllFunctionsStatement, IfStatement,
-    Precedence, PreprocessedStatement, ReturnStatement, SeparatedList1, Statement, StatementType,
-    StructDefinitionStatement, SwitchStatement, ThreadStatement, ThrowStatement, TryCatchStatement,
-    Type, TypeDefinitionStatement, UntypedStatement, VarDefinition, VarDefinitionStatement,
-    WaitStatement, WaitThreadSoloStatement, WaitThreadStatement, WhileStatement, YieldStatement,
+    Precedence, PreprocesserIfExpression, ReturnStatement, SeparatedList1, Statement,
+    StatementType, StructDefinitionStatement, SwitchStatement, ThreadStatement, ThrowStatement,
+    TryCatchStatement, Type, TypeDefinitionStatement, UntypedStatement, VarDefinition,
+    VarDefinitionStatement, WaitStatement, WaitThreadSoloStatement, WaitThreadStatement,
+    WhileStatement, YieldStatement,
 };
 use crate::parser::class::class_definition;
 use crate::parser::control::{
@@ -142,7 +143,9 @@ pub fn block_statement(tokens: TokenList) -> ParseResult<BlockStatement> {
         )
 }
 
-pub fn preprocessed_if_statement(tokens: TokenList) -> ParseResult<PreprocessedStatement> {
+pub fn preprocessed_if_statement(
+    tokens: TokenList,
+) -> ParseResult<Box<PreprocesserIfExpression<Vec<Statement>>>> {
     tokens
         .terminal(TerminalToken::PreprocessorIf)
         .determines_and_opens(
@@ -150,18 +153,20 @@ pub fn preprocessed_if_statement(tokens: TokenList) -> ParseResult<PreprocessedS
             |tokens| tokens.terminal(TerminalToken::PreprocessorEndIf),
             |tokens, open, close| {
                 let (tokens, condition) = expression(tokens, Precedence::None)?;
-                let r = tokens.many_until_ended(statement);
-                println!("{r:#?}");
-                let (tokens, statements) = r?;
-				// TODO: elseif, else
+                let (tokens, statements) = tokens.many_until_ended(statement)?;
+                // TODO: elseif, else
                 Ok((
                     tokens,
-                    PreprocessedStatement {
+                    Box::new(PreprocesserIfExpression {
                         if_: open,
-                        condition,
-                        statements,
-                        endif_: close,
-                    },
+                        else_: None,
+                        elseif: None,
+                        endif: close,
+                        if_condition: *condition,
+                        content: statements,
+                        elseif_content: None,
+                        else_content: None,
+                    }),
                 ))
             },
         )

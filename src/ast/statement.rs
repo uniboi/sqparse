@@ -5,6 +5,8 @@ use crate::ast::{
 };
 use crate::token::Token;
 
+use super::PreprocesserIfExpression;
+
 /// A statement.
 ///
 /// A Squirrel program is made up of a list of statements. Statements are either separated by
@@ -53,7 +55,7 @@ pub enum StatementType<'s> {
     Global(GlobalStatement<'s>),
     GlobalizeAllFunctions(GlobalizeAllFunctionsStatement<'s>),
     Untyped(UntypedStatement<'s>),
-	Preprocessed(PreprocessedStatement<'s>),
+    Preprocessed(Box<PreprocesserIfExpression<'s, Vec<Statement<'s>>>>),
 }
 
 /// An empty statement.
@@ -379,12 +381,4 @@ pub struct GlobalizeAllFunctionsStatement<'s> {
 #[derive(Debug, Clone)]
 pub struct UntypedStatement<'s> {
     pub untyped: &'s Token<'s>,
-}
-
-#[derive(Debug, Clone)]
-pub struct PreprocessedStatement<'s> {
-	pub if_: &'s Token<'s>,
-	pub condition: Box<Expression<'s>>,
-	pub statements: Vec<Statement<'s>>,
-	pub endif_: &'s Token<'s>,
 }

@@ -4,7 +4,7 @@ use crate::ast::{
 };
 use crate::token::{LiteralToken, Token};
 
-use super::PreprocessedStatement;
+use super::{Preprocessable, Statement};
 
 /// An expression.
 ///
@@ -34,7 +34,7 @@ pub enum Expression<'s> {
     Delegate(DelegateExpression<'s>),
     Vector(VectorExpression<'s>),
     Expect(ExpectExpression<'s>),
-	Preprocessed(PreprocessedStatement<'s>),
+	Preprocessed(Preprocessable<'s, Statement<'s>>),
 }
 
 /// An expression enclosed in parentheses.
