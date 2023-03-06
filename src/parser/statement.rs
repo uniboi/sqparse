@@ -3,11 +3,11 @@ use crate::ast::{
     ConstructorDefinitionStatement, ContinueStatement, DelayThreadStatement, DoWhileStatement,
     EmptyStatement, EnumDefinitionStatement, ExpressionStatement, ForStatement, ForeachStatement,
     FunctionDefinitionStatement, GlobalStatement, GlobalizeAllFunctionsStatement, IfStatement,
-    Precedence, PreprocesserIfExpression, ReturnStatement, SeparatedList1, Statement,
-    StatementType, StructDefinitionStatement, SwitchStatement, ThreadStatement, ThrowStatement,
-    TryCatchStatement, Type, TypeDefinitionStatement, UntypedStatement, VarDefinition,
-    VarDefinitionStatement, WaitStatement, WaitThreadSoloStatement, WaitThreadStatement,
-    WhileStatement, YieldStatement,
+    Precedence, PreprocessorElseExpression, PreprocessorElseIfExpression, PreprocessorIfExpression,
+    ReturnStatement, SeparatedList1, Statement, StatementType, StructDefinitionStatement,
+    SwitchStatement, ThreadStatement, ThrowStatement, TryCatchStatement, Type,
+    TypeDefinitionStatement, UntypedStatement, VarDefinition, VarDefinitionStatement,
+    WaitStatement, WaitThreadSoloStatement, WaitThreadStatement, WhileStatement, YieldStatement,
 };
 use crate::parser::class::class_definition;
 use crate::parser::control::{
@@ -27,6 +27,8 @@ use crate::parser::variable::{var_definition, var_initializer};
 use crate::parser::ParseResult;
 use crate::token::{TerminalToken, Token, TokenType};
 use crate::{ContextType, ParseErrorType};
+
+use super::preprocessed::{many_preprocessed_if_contents, preprocessed_if};
 
 pub fn statement(tokens: TokenList) -> ParseResult<Statement> {
     let (next_tokens, statement) = inner_statement(tokens)?;
@@ -145,31 +147,97 @@ pub fn block_statement(tokens: TokenList) -> ParseResult<BlockStatement> {
 
 pub fn preprocessed_if_statement(
     tokens: TokenList,
-) -> ParseResult<Box<PreprocesserIfExpression<Vec<Statement>>>> {
-    tokens
-        .terminal(TerminalToken::PreprocessorIf)
-        .determines_and_opens(
-            ContextType::PreProcessorIf,
-            |tokens| tokens.terminal(TerminalToken::PreprocessorEndIf),
-            |tokens, open, close| {
-                let (tokens, condition) = expression(tokens, Precedence::None)?;
-                let (tokens, statements) = tokens.many_until_ended(statement)?;
-                // TODO: elseif, else
-                Ok((
-                    tokens,
-                    Box::new(PreprocesserIfExpression {
-                        if_: open,
-                        else_: None,
-                        elseif: None,
-                        endif: close,
-                        if_condition: *condition,
-                        content: statements,
-                        elseif_content: None,
-                        else_content: None,
-                    }),
-                ))
+) -> ParseResult<Box<PreprocessorIfExpression<Vec<Statement>>>> {
+    // tokens
+    //     .terminal(TerminalToken::PreprocessorIf)
+    //     .determines_and_opens(
+    //         ContextType::PreProcessorIf,
+    //         |tokens| tokens.terminal(TerminalToken::PreprocessorEndIf),
+    //         |tokens, open, close| {
+    //             let (tokens, condition) = expression(tokens, Precedence::None)?;
+    //             let (tokens, statements) = tokens.many_until(
+    //                 |tokens| {
+    //                     tokens.is_ended()
+    //                         || tokens.terminal(TerminalToken::PreprocessorElseIf).is_ok()
+    //                         || tokens.terminal(TerminalToken::PreprocessorElse).is_ok()
+    //                 },
+    //                 statement,
+    //             )?;
+    //             let (tokens, elseif) = preprocessed_elseif_statement(tokens).maybe(tokens)?;
+    //             let (tokens, else_) = preprocessed_else_statement(tokens).maybe(tokens)?;
+
+    //             Ok((
+    //                 tokens,
+    //                 Box::new(PreprocessorIfExpression {
+    //                     if_: open,
+    //                     else_,
+    //                     elseif,
+    //                     endif: close,
+    //                     condition,
+    //                     content: statements,
+    //                 }),
+    //             ))
+    //         },
+    //     )
+    preprocessed_if(tokens, |tokens| {
+        tokens.many_until(
+            |tokens| {
+                tokens.is_ended()
+                    || tokens.terminal(TerminalToken::PreprocessorElseIf).is_ok()
+                    || tokens.terminal(TerminalToken::PreprocessorElse).is_ok()
             },
+            statement,
         )
+    })
+}
+
+fn t<'s>(tokens: TokenList) -> ParseResult<Vec<Statement>> {
+    tokens.many_until_ended(statement)
+}
+
+pub fn preprocessed_elseif_statement(
+    tokens: TokenList,
+) -> ParseResult<Box<PreprocessorElseIfExpression<Vec<Statement>>>> {
+    tokens
+        .terminal(TerminalToken::PreprocessorElseIf)
+        .determines(|tokens, elseif_| {
+            let (tokens, condition) = expression(tokens, Precedence::None)?;
+            let (tokens, statements) = tokens.many_until(
+                |tokens| {
+                    tokens.is_ended()
+                        || tokens.terminal(TerminalToken::PreprocessorElseIf).is_ok()
+                        || tokens.terminal(TerminalToken::PreprocessorElse).is_ok()
+                },
+                statement,
+            )?;
+            let (tokens, elseif) = preprocessed_elseif_statement(tokens).maybe(tokens)?;
+            Ok((
+                tokens,
+                Box::new(PreprocessorElseIfExpression {
+                    condition,
+                    content: statements,
+                    elseif,
+                    elseif_,
+                }),
+            ))
+        })
+}
+
+pub fn preprocessed_else_statement(
+    tokens: TokenList,
+) -> ParseResult<PreprocessorElseExpression<Vec<Statement>>> {
+    tokens
+        .terminal(TerminalToken::PreprocessorElse)
+        .determines(|tokens, else_| {
+            let (tokens, statements) = tokens.many_until_ended(statement)?;
+            Ok((
+                tokens,
+                PreprocessorElseExpression {
+                    else_,
+                    content: statements,
+                },
+            ))
+        })
 }
 
 pub fn if_statement(tokens: TokenList) -> ParseResult<IfStatement> {

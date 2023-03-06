@@ -18,6 +18,7 @@ mod token_list;
 mod token_list_ext;
 mod type_;
 mod variable;
+mod preprocessed;
 
 pub use self::context::ContextType;
 pub use self::error::{ParseError, ParseErrorContext, ParseErrorType};

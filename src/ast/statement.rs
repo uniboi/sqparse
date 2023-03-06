@@ -5,7 +5,7 @@ use crate::ast::{
 };
 use crate::token::Token;
 
-use super::PreprocesserIfExpression;
+use super::PreprocessorIfExpression;
 
 /// A statement.
 ///
@@ -55,7 +55,7 @@ pub enum StatementType<'s> {
     Global(GlobalStatement<'s>),
     GlobalizeAllFunctions(GlobalizeAllFunctionsStatement<'s>),
     Untyped(UntypedStatement<'s>),
-    Preprocessed(Box<PreprocesserIfExpression<'s, Vec<Statement<'s>>>>),
+    Preprocessed(Box<PreprocessorIfExpression<'s, Vec<Statement<'s>>>>),
 }
 
 /// An empty statement.

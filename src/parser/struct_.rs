@@ -1,5 +1,5 @@
 use crate::ast::{
-    Precedence, Preprocessable, PreprocesserIfExpression, StructDefinition, StructProperty,
+    Precedence, Preprocessable, PreprocessorIfExpression, StructDefinition, StructProperty,
 };
 use crate::parser::identifier::identifier;
 use crate::parser::parse_result_ext::ParseResultExt;
@@ -66,15 +66,13 @@ pub fn preprocessed_struct_properties(
                     tokens.many_until_ended(possibly_preprocessed_struct_property)?;
                 Ok((
                     tokens,
-                    Preprocessable::PREPROCESSED(Box::new(PreprocesserIfExpression {
+                    Preprocessable::PREPROCESSED(Box::new(PreprocessorIfExpression {
                         if_,
                         else_: None,
                         elseif: None,
                         endif,
-                        if_condition: *condition,
+                        condition: condition,
                         content: properties,
-                        elseif_content: None,
-                        else_content: None,
                     })),
                 ))
             },

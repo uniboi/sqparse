@@ -177,8 +177,8 @@ define_terminals! {
 
 		// Preprocessor symbols
         PreprocessorIf => "#if" 			if Flavor::SquirrelRespawn,
-        PreprocessorElse => "#else" 		if Flavor::SquirrelRespawn,
         PreprocessorElseIf => "#elseif" 	if Flavor::SquirrelRespawn,
+        PreprocessorElse => "#else" 		if Flavor::SquirrelRespawn,
         PreprocessorEndIf => "#endif" 		if Flavor::SquirrelRespawn,
         PreprocessorDocument => "#document" if Flavor::SquirrelRespawn
     }
