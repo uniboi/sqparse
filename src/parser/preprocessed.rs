@@ -1,74 +1,62 @@
 use crate::{
     ast::{
         Precedence, PreprocessorElseExpression, PreprocessorElseIfExpression,
-        PreprocessorIfExpression, Statement,
+        PreprocessorIfExpression,
     },
     token::TerminalToken,
     ContextType,
 };
 
 use super::{
-    expression::expression, parse_result_ext::ParseResultExt, statement, token_list::TokenList,
+    expression::expression, parse_result_ext::ParseResultExt, token_list::TokenList,
     token_list_ext::TokenListExt, ParseResult,
 };
 
-pub fn many_preprocessed_if_contents<T>(
-    tokens: TokenList,
-    stm: fn(TokenList) -> ParseResult<T>,
-) -> ParseResult<Vec<T>> {
-    tokens.many_until(
-        |tokens| {
-            tokens.is_ended()
-                || tokens.terminal(TerminalToken::PreprocessorElseIf).is_ok()
-                || tokens.terminal(TerminalToken::PreprocessorElse).is_ok()
-        },
-        stm,
-    )
+pub fn preprocessed_if_contents_terminal(tokens: TokenList) -> bool {
+    tokens.is_ended()
+        || tokens.terminal(TerminalToken::PreprocessorElseIf).is_ok()
+        || tokens.terminal(TerminalToken::PreprocessorElse).is_ok()
+}
+
+pub fn many_preprocessed_if_contents<'s, T, FnParser: Fn(TokenList<'s>) -> ParseResult<'s, T>>(
+    parser: FnParser,
+) -> impl FnOnce(TokenList<'s>) -> ParseResult<Vec<T>> {
+    |tokens: TokenList<'s>| {
+        tokens.many_until(
+            |tokens| {
+                tokens.is_ended()
+                    || tokens.terminal(TerminalToken::PreprocessorElseIf).is_ok()
+                    || tokens.terminal(TerminalToken::PreprocessorElse).is_ok()
+            },
+            parser,
+        )
+    }
 }
 
 pub fn preprocessed_if<'s, T, FnParser: Fn(TokenList<'s>) -> ParseResult<'s, T>>(
     tokens: TokenList<'s>,
-    stm: FnParser,
+    parser: FnParser,
 ) -> ParseResult<Box<PreprocessorIfExpression<T>>> {
     tokens
         .terminal(TerminalToken::PreprocessorIf)
         .determines_and_opens(
             ContextType::PreProcessorIf,
             |tokens| tokens.terminal(TerminalToken::PreprocessorEndIf),
-            |tokens, open, close| {
+            |tokens, if_, endif| {
                 let (tokens, condition) = expression(tokens, Precedence::None)?;
-                // let (tokens, statements) = tokens.many_until(
-                // |tokens| {
-                //     tokens.is_ended()
-                //         || tokens.terminal(TerminalToken::PreprocessorElseIf).is_ok()
-                //         || tokens.terminal(TerminalToken::PreprocessorElse).is_ok()
-                // },
-                // stm,
-                // )?;
-                let (tokens, statements) = stm(tokens)?;
-                // let (tokens, statements) = (|tokens: TokenList| {
-                //     tokens.many_until(
-                //         |tokens: TokenList| {
-                //             tokens.is_ended()
-                //                 || tokens.terminal(TerminalToken::PreprocessorElseIf).is_ok()
-                //                 || tokens.terminal(TerminalToken::PreprocessorElse).is_ok()
-                //         },
-                //         statement,
-                //     )
-                // })(tokens)?;
-
-                let (tokens, elseif) = preprocessed_elseif(tokens, &stm).maybe(tokens)?;
-                let (tokens, else_) = preprocessed_else(tokens, &stm).maybe(tokens)?;
+                let (tokens, content) = parser(tokens)?;
+                let (tokens, elseif) = preprocessed_elseif(tokens, &parser).maybe(tokens)?;
+                let (tokens, else_) = preprocessed_else(tokens, &parser).maybe(tokens)?;
 
                 Ok((
                     tokens,
                     Box::new(PreprocessorIfExpression {
-                        if_: open,
+                        if_,
                         else_,
                         elseif,
-                        endif: close,
+                        endif,
                         condition,
-                        content: statements,
+                        content,
                     }),
                 ))
             },
@@ -77,27 +65,19 @@ pub fn preprocessed_if<'s, T, FnParser: Fn(TokenList<'s>) -> ParseResult<'s, T>>
 
 pub fn preprocessed_elseif<'s, T, FnParser: Fn(TokenList<'s>) -> ParseResult<'s, T>>(
     tokens: TokenList<'s>,
-    stm: FnParser,
+    parser: FnParser,
 ) -> ParseResult<Box<PreprocessorElseIfExpression<T>>> {
     tokens
         .terminal(TerminalToken::PreprocessorElseIf)
         .determines(|tokens, elseif_| {
             let (tokens, condition) = expression(tokens, Precedence::None)?;
-            // let (tokens, statements) = tokens.many_until(
-            //     |tokens| {
-            //         tokens.is_ended()
-            //             || tokens.terminal(TerminalToken::PreprocessorElseIf).is_ok()
-            //             || tokens.terminal(TerminalToken::PreprocessorElse).is_ok()
-            //     },
-            //     stm,
-            // )?;
-            let (tokens, statements) = stm(tokens)?;
-            let (tokens, elseif) = preprocessed_elseif(tokens, stm).maybe(tokens)?;
+            let (tokens, content) = parser(tokens)?;
+            let (tokens, elseif) = preprocessed_elseif(tokens, parser).maybe(tokens)?;
             Ok((
                 tokens,
                 Box::new(PreprocessorElseIfExpression {
                     condition,
-                    content: statements,
+                    content,
                     elseif,
                     elseif_,
                 }),
@@ -107,18 +87,17 @@ pub fn preprocessed_elseif<'s, T, FnParser: Fn(TokenList<'s>) -> ParseResult<'s,
 
 pub fn preprocessed_else<'s, T, FnParser: Fn(TokenList<'s>) -> ParseResult<'s, T>>(
     tokens: TokenList<'s>,
-    stm: FnParser,
+    parser: FnParser,
 ) -> ParseResult<PreprocessorElseExpression<T>> {
     tokens
         .terminal(TerminalToken::PreprocessorElse)
         .determines(|tokens, else_| {
-            // let (tokens, statements) = tokens.many_until_ended(stm)?;
-            let (tokens, statements) = stm(tokens)?;
+            let (tokens, content) = parser(tokens)?;
             Ok((
                 tokens,
                 PreprocessorElseExpression {
                     else_,
-                    content: statements,
+                    content,
                 },
             ))
         })

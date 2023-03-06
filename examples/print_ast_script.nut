@@ -15,3 +15,13 @@ table<int, table<int>> t
 
 #endif
 #endif
+
+#if COND1
+int T1
+#elseif COND2
+int T2
+#elseif COND3
+int T3
+#else
+int T4
+#endif
