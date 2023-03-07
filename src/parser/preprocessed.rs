@@ -18,21 +18,6 @@ pub fn preprocessed_if_contents_terminal(tokens: TokenList) -> bool {
         || tokens.terminal(TerminalToken::PreprocessorElse).is_ok()
 }
 
-pub fn many_preprocessed_if_contents<'s, T, FnParser: Fn(TokenList<'s>) -> ParseResult<'s, T>>(
-    parser: FnParser,
-) -> impl FnOnce(TokenList<'s>) -> ParseResult<Vec<T>> {
-    |tokens: TokenList<'s>| {
-        tokens.many_until(
-            |tokens| {
-                tokens.is_ended()
-                    || tokens.terminal(TerminalToken::PreprocessorElseIf).is_ok()
-                    || tokens.terminal(TerminalToken::PreprocessorElse).is_ok()
-            },
-            parser,
-        )
-    }
-}
-
 pub fn preprocessed_if<'s, T, FnParser: Fn(TokenList<'s>) -> ParseResult<'s, T>>(
     tokens: TokenList<'s>,
     parser: FnParser,

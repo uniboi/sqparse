@@ -4,7 +4,7 @@ use crate::ast::{
 };
 use crate::token::{LiteralToken, Token};
 
-use super::{Preprocessable, Statement};
+use super::PreprocessorIfExpression;
 
 /// An expression.
 ///
@@ -34,7 +34,7 @@ pub enum Expression<'s> {
     Delegate(DelegateExpression<'s>),
     Vector(VectorExpression<'s>),
     Expect(ExpectExpression<'s>),
-	Preprocessed(Preprocessable<'s, Statement<'s>>),
+    Preprocessed(Box<PreprocessorIfExpression<'s, Box<Expression<'s>>>>),
 }
 
 /// An expression enclosed in parentheses.
@@ -136,12 +136,12 @@ pub struct LambdaExpression<'s> {
 }
 
 /// A Preprocessor statement containing expressions
-/// 
+///
 /// TODO: Grammar
-/// 
+///
 #[derive(Debug, Clone)]
 pub struct PreprocessorIf<'s> {
-	pub if_: &'s Token<'s>
+    pub if_: &'s Token<'s>,
 }
 /// A delegate expression.
 ///

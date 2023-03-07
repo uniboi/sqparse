@@ -115,8 +115,8 @@ pub fn statement_type(tokens: TokenList) -> ParseResult<StatementType> {
             globalize_all_functions_statement(tokens).map_val(StatementType::GlobalizeAllFunctions)
         })
         .or_try(|| untyped_statement(tokens).map_val(StatementType::Untyped))
-        .or_try(|| expression_statement(tokens).map_val(StatementType::Expression))
         .or_try(|| preprocessed_if_statement(tokens).map_val(StatementType::Preprocessed))
+        .or_try(|| expression_statement(tokens).map_val(StatementType::Expression))
         .with_context_from(ContextType::Statement, tokens)
         .or_error(|| tokens.error(ParseErrorType::ExpectedStatement))
 }

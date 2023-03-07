@@ -17,7 +17,7 @@ table<int, table<int>> t
 #endif
 
 #if COND1
-int T1
+int T1 = #if INLINE_COND C1 #else C2 #endif
 #elseif COND2
 int T2
 #elseif COND3

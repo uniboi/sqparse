@@ -2,8 +2,8 @@ use crate::ast::{
     ArrayExpression, BinaryExpression, CallExpression, ClassExpression, CommaExpression,
     DelegateExpression, ExpectExpression, Expression, FunctionExpression, IndexExpression,
     LambdaExpression, LiteralExpression, ParensExpression, PostfixExpression, Precedence,
-    PrefixExpression, PropertyExpression, RootVarExpression,
-    TableExpression, TernaryExpression, VarExpression, VectorExpression
+    PrefixExpression, PreprocessorIfExpression, PropertyExpression, RootVarExpression,
+    TableExpression, TernaryExpression, VarExpression, VectorExpression,
 };
 use crate::parser::array::array_value;
 use crate::parser::class::class_definition;
@@ -18,6 +18,8 @@ use crate::parser::type_::type_;
 use crate::parser::ParseResult;
 use crate::token::{TerminalToken, TokenType};
 use crate::{ContextType, ParseErrorType};
+
+use super::preprocessed::preprocessed_if;
 
 pub fn expression(tokens: TokenList, precedence: Precedence) -> ParseResult<Box<Expression>> {
     let (mut next_tokens, mut value) = value(tokens)?;
@@ -52,9 +54,15 @@ fn value(tokens: TokenList) -> ParseResult<Box<Expression>> {
         .or_try(|| delegate(tokens).map_val(Expression::Delegate))
         .or_try(|| expect(tokens).map_val(Expression::Expect))
         .or_try(|| lambda(tokens).map_val(Expression::Lambda))
-        // .or_try(|| preprocessed_if_statement(tokens).map_val(Expression::Preprocessed))
+        .or_try(|| preprocessed_if_expression(tokens).map_val(Expression::Preprocessed))
         .or_error(|| tokens.error(ParseErrorType::ExpectedValue))
         .map_val(Box::new)
+}
+
+pub fn preprocessed_if_expression(
+    tokens: TokenList,
+) -> ParseResult<Box<PreprocessorIfExpression<Box<Expression>>>> {
+    preprocessed_if(tokens, |tokens| expression(tokens, Precedence::None))
 }
 
 pub fn function(tokens: TokenList) -> ParseResult<FunctionExpression> {
@@ -83,8 +91,10 @@ pub fn parens(tokens: TokenList) -> ParseResult<ParensExpression> {
             ContextType::Expression,
             |tokens| tokens.terminal(TerminalToken::CloseBracket),
             |tokens, open, close| {
-                expression(tokens, Precedence::None).map_val(|value| {
-                    ParensExpression { open, value, close }
+                expression(tokens, Precedence::None).map_val(|value| ParensExpression {
+                    open,
+                    value,
+                    close,
                 })
             },
         )
