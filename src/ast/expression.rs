@@ -108,7 +108,7 @@ pub struct ClassExpression<'s> {
 #[derive(Debug, Clone)]
 pub struct ArrayExpression<'s> {
     pub open: &'s Token<'s>,
-    pub values: Vec<ArrayValue<'s>>,
+    pub values: Vec<Preprocessable<'s, ArrayValue<'s>>>,
     pub spread: Option<&'s Token<'s>>,
     pub close: &'s Token<'s>,
 }

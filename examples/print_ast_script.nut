@@ -11,6 +11,17 @@ struct T
 }
 
 #if 1
+array<string> a = [
+	"p1",
+	"p2",
+	#if ARR_COND_1
+	"p3"
+	#elseif ARR_COND_2
+	"p4",
+	"p5"
+	#endif
+	"p6"
+]
 #if 2
 table<int, table<int>> t = {
 	slot1 = TEST1

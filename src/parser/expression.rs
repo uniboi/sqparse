@@ -5,7 +5,6 @@ use crate::ast::{
     PrefixExpression, PreprocessorIfExpression, PropertyExpression, RootVarExpression,
     TableExpression, TernaryExpression, VarExpression, VectorExpression,
 };
-use crate::parser::array::array_value;
 use crate::parser::class::class_definition;
 use crate::parser::function::{call_argument, function_definition, function_params};
 use crate::parser::identifier::{identifier, method_identifier};
@@ -18,6 +17,7 @@ use crate::parser::ParseResult;
 use crate::token::{TerminalToken, TokenType};
 use crate::{ContextType, ParseErrorType};
 
+use super::array::possibly_preprocessed_array_value;
 use super::preprocessed::preprocessed_if;
 use super::table::possibly_preprocessed_table_slot;
 
@@ -178,7 +178,7 @@ pub fn array(tokens: TokenList) -> ParseResult<ArrayExpression> {
             |tokens, open, close| {
                 let (tokens, values) = tokens.many_until(
                     |tokens| tokens.is_ended() || tokens.terminal(TerminalToken::Ellipsis).is_ok(),
-                    array_value,
+                    possibly_preprocessed_array_value,
                 )?;
                 let (tokens, spread) = tokens.terminal(TerminalToken::Ellipsis).maybe(tokens)?;
                 Ok((
