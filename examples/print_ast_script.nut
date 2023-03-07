@@ -1,6 +1,7 @@
 struct T
 {
 	int sh
+	int sh1
 	#ifCLIENT
 	#if 2
 	int cl
@@ -19,7 +20,7 @@ table<int, table<int>> t
 #if COND1
 int T1 = #if INLINE_COND C1 #else C2 #endif
 #elseif COND2
-int T2
+int T2 = C3
 #elseif COND3
 int T3
 #else

@@ -1,6 +1,4 @@
-use crate::ast::{
-    Precedence, Preprocessable, PreprocessorIfExpression, StructDefinition, StructProperty,
-};
+use crate::ast::{Preprocessable, StructDefinition, StructProperty};
 use crate::parser::identifier::identifier;
 use crate::parser::parse_result_ext::ParseResultExt;
 use crate::parser::token_list::TokenList;
@@ -11,7 +9,7 @@ use crate::parser::ParseResult;
 use crate::token::TerminalToken;
 use crate::ContextType;
 
-use super::expression::expression;
+use super::preprocessed::{preprocessed_if, preprocessed_if_contents_terminal};
 
 pub fn struct_definition(tokens: TokenList) -> ParseResult<StructDefinition> {
     tokens.terminal(TerminalToken::OpenBrace).opens(
@@ -32,6 +30,7 @@ pub fn struct_definition(tokens: TokenList) -> ParseResult<StructDefinition> {
 pub fn possibly_preprocessed_struct_property(
     tokens: TokenList,
 ) -> ParseResult<Preprocessable<StructProperty>> {
+    // preprocessed_struct_properties(tokens).or_try(|| struct_property(tokens))
     preprocessed_struct_properties(tokens).or_try(|| struct_property(tokens))
 }
 
@@ -55,26 +54,11 @@ pub fn struct_property(tokens: TokenList) -> ParseResult<Preprocessable<StructPr
 pub fn preprocessed_struct_properties(
     tokens: TokenList,
 ) -> ParseResult<Preprocessable<StructProperty>> {
-    tokens
-        .terminal(TerminalToken::PreprocessorIf)
-        .determines_and_opens(
-            ContextType::PreProcessorIf,
-            |tokens| tokens.terminal(TerminalToken::PreprocessorEndIf),
-            |tokens, if_, endif| {
-                let (tokens, condition) = expression(tokens, Precedence::None)?;
-                let (tokens, properties) =
-                    tokens.many_until_ended(possibly_preprocessed_struct_property)?;
-                Ok((
-                    tokens,
-                    Preprocessable::PREPROCESSED(Box::new(PreprocessorIfExpression {
-                        if_,
-                        else_: None,
-                        elseif: None,
-                        endif,
-                        condition: condition,
-                        content: properties,
-                    })),
-                ))
-            },
+    let (tokens, preprocessed) = preprocessed_if(tokens, |tokens| {
+        tokens.many_until(
+            |tokens| preprocessed_if_contents_terminal(tokens),
+            possibly_preprocessed_struct_property,
         )
+    })?;
+    Ok((tokens, Preprocessable::PREPROCESSED(preprocessed)))
 }
