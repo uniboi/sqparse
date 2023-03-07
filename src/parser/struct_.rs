@@ -30,7 +30,6 @@ pub fn struct_definition(tokens: TokenList) -> ParseResult<StructDefinition> {
 pub fn possibly_preprocessed_struct_property(
     tokens: TokenList,
 ) -> ParseResult<Preprocessable<StructProperty>> {
-    // preprocessed_struct_properties(tokens).or_try(|| struct_property(tokens))
     preprocessed_struct_properties(tokens).or_try(|| struct_property(tokens))
 }
 

@@ -4,7 +4,7 @@ use crate::ast::{
 };
 use crate::token::{LiteralToken, Token};
 
-use super::PreprocessorIfExpression;
+use super::{PreprocessorIfExpression, Preprocessable};
 
 /// An expression.
 ///
@@ -88,7 +88,7 @@ pub struct PrefixExpression<'s> {
 #[derive(Debug, Clone)]
 pub struct TableExpression<'s> {
     pub open: &'s Token<'s>,
-    pub slots: Vec<TableSlot<'s>>,
+    pub slots: Vec<Preprocessable<'s, TableSlot<'s>>>,
     pub spread: Option<&'s Token<'s>>,
     pub close: &'s Token<'s>,
 }

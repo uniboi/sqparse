@@ -5,11 +5,11 @@ use super::Expression;
 #[derive(Debug, Clone)]
 pub struct PreprocessorIfExpression<'s, T> {
     pub if_: &'s Token<'s>,
-    pub else_: Option<PreprocessorElseExpression<'s, T>>,
-    pub elseif: Option<Box<PreprocessorElseIfExpression<'s, T>>>,
-    pub endif: &'s Token<'s>,
     pub condition: Box<Expression<'s>>,
     pub content: T,
+    pub elseif: Option<Box<PreprocessorElseIfExpression<'s, T>>>,
+    pub else_: Option<PreprocessorElseExpression<'s, T>>,
+    pub endif: &'s Token<'s>,
 }
 
 #[derive(Debug, Clone)]

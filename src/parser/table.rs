@@ -1,4 +1,4 @@
-use crate::ast::{Precedence, TableSlot, TableSlotType};
+use crate::ast::{Precedence, Preprocessable, TableSlot, TableSlotType};
 use crate::parser::expression::expression;
 use crate::parser::parse_result_ext::ParseResultExt;
 use crate::parser::slot::slot;
@@ -8,10 +8,31 @@ use crate::parser::ParseResult;
 use crate::token::{LiteralToken, StringToken, TerminalToken, Token, TokenType};
 use crate::{ContextType, ParseErrorType};
 
-pub fn table_slot(tokens: TokenList) -> ParseResult<TableSlot> {
+use super::preprocessed::{preprocessed_if, preprocessed_if_contents_terminal};
+
+pub fn possibly_preprocessed_table_slot(
+    tokens: TokenList,
+) -> ParseResult<Preprocessable<TableSlot>> {
+    preprocessed_table_slot(tokens).or_try(|| table_slot(tokens))
+}
+
+pub fn preprocessed_table_slot(tokens: TokenList) -> ParseResult<Preprocessable<TableSlot>> {
+    let (tokens, preprocessed) = preprocessed_if(tokens, |tokens| {
+        tokens.many_until(
+            |tokens| preprocessed_if_contents_terminal(tokens),
+            possibly_preprocessed_table_slot,
+        )
+    })?;
+    Ok((tokens, Preprocessable::PREPROCESSED(preprocessed)))
+}
+
+pub fn table_slot(tokens: TokenList) -> ParseResult<Preprocessable<TableSlot>> {
     let (tokens, ty) = table_slot_type(tokens)?;
     let (tokens, comma) = tokens.terminal(TerminalToken::Comma).maybe(tokens)?;
-    Ok((tokens, TableSlot { ty, comma }))
+    Ok((
+        tokens,
+        Preprocessable::UNCONDITIONAL(TableSlot { ty, comma }),
+    ))
 }
 
 fn table_slot_type(tokens: TokenList) -> ParseResult<TableSlotType> {

@@ -12,7 +12,14 @@ struct T
 
 #if 1
 #if 2
-table<int, table<int>> t
+table<int, table<int>> t = {
+	slot1 = TEST1
+	#if SLOT_COND_1
+	slot2 = TEST2
+	#elseif SLOT_COND_2
+	slot3 = TEST3
+	#endif
+}
 
 #endif
 #endif

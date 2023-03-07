@@ -11,7 +11,6 @@ use crate::parser::function::{call_argument, function_definition, function_param
 use crate::parser::identifier::{identifier, method_identifier};
 use crate::parser::operator::{binary_operator, postfix_operator, prefix_operator};
 use crate::parser::parse_result_ext::ParseResultExt;
-use crate::parser::table::table_slot;
 use crate::parser::token_list::TokenList;
 use crate::parser::token_list_ext::TokenListExt;
 use crate::parser::type_::type_;
@@ -20,6 +19,7 @@ use crate::token::{TerminalToken, TokenType};
 use crate::{ContextType, ParseErrorType};
 
 use super::preprocessed::preprocessed_if;
+use super::table::possibly_preprocessed_table_slot;
 
 pub fn expression(tokens: TokenList, precedence: Precedence) -> ParseResult<Box<Expression>> {
     let (mut next_tokens, mut value) = value(tokens)?;
@@ -143,7 +143,8 @@ pub fn table_delimited(
         |tokens, open, close| {
             let (tokens, slots) = tokens.many_until(
                 |tokens| tokens.is_ended() || tokens.terminal(TerminalToken::Ellipsis).is_ok(),
-                table_slot,
+                // table_slot,
+                possibly_preprocessed_table_slot,
             )?;
             let (tokens, spread) = tokens.terminal(TerminalToken::Ellipsis).maybe(tokens)?;
             Ok((
