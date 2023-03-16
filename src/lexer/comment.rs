@@ -1,8 +1,12 @@
 use crate::lexer::error::LexerError;
 use crate::lexer::parse_str::ParseStr;
 use crate::token::Comment;
+use crate::Flavor;
 
-pub fn try_comment(val: ParseStr) -> Result<Option<(Comment, ParseStr)>, LexerError> {
+pub fn try_comment(
+    val: ParseStr,
+    flavor: Flavor,
+) -> Result<Option<(Comment, ParseStr)>, LexerError> {
     if let Some(val) = val.strip_prefix("/*") {
         return match val.as_str().find("*/") {
             Some(end_index) => Ok(Some((
@@ -13,10 +17,13 @@ pub fn try_comment(val: ParseStr) -> Result<Option<(Comment, ParseStr)>, LexerEr
         };
     }
 
-    // if let Some(remaining) = val.strip_prefix("#") {
-    //     let (comment_val, remaining) = get_rest_of_line(remaining);
-    //     return Ok(Some((Comment::ScriptStyle(comment_val), remaining)));
-    // }
+    if let (false, Some(remaining)) = (
+        matches!(flavor, Flavor::SquirrelRespawn),
+        val.strip_prefix("#"),
+    ) {
+        let (comment_val, remaining) = get_rest_of_line(remaining);
+        return Ok(Some((Comment::ScriptStyle(comment_val), remaining)));
+    }
 
     if let Some(remaining) = val.strip_prefix("//") {
         let (comment_val, remaining) = get_rest_of_line(remaining);

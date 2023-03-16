@@ -67,7 +67,8 @@ impl<'s> Iterator for TokenIter<'s> {
 
                 // Add the previous line of comments to the next tokens `before_lines` list.
                 self.before_lines.push(line);
-            } else if let Some((comment, remaining)) = try_some!(try_comment(self.val)) {
+            } else if let Some((comment, remaining)) = try_some!(try_comment(self.val, self.flavor))
+            {
                 self.val = remaining;
                 self.current_line_comments.push(comment);
             } else if let Some((token_ty, remaining)) =
@@ -84,8 +85,6 @@ impl<'s> Iterator for TokenIter<'s> {
                     new_line: None,
                 };
                 self.val = remaining;
-
-                println!("{:?}", &token);
 
                 // Store the new token, so continuing comments can be attached to it before either
                 // a newline or another token is encountered.

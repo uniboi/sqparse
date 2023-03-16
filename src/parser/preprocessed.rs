@@ -78,12 +78,6 @@ pub fn preprocessed_else<'s, T, FnParser: Fn(TokenList<'s>) -> ParseResult<'s, T
         .terminal(TerminalToken::PreprocessorElse)
         .determines(|tokens, else_| {
             let (tokens, content) = parser(tokens)?;
-            Ok((
-                tokens,
-                PreprocessorElseExpression {
-                    else_,
-                    content,
-                },
-            ))
+            Ok((tokens, PreprocessorElseExpression { else_, content }))
         })
 }
