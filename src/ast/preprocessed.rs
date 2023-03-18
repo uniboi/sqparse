@@ -31,3 +31,15 @@ pub enum Preprocessable<'s, T> {
     PREPROCESSED(Box<PreprocessorIfExpression<'s, Vec<Preprocessable<'s, T>>>>),
     UNCONDITIONAL(T),
 }
+
+#[derive(Debug, Clone)]
+pub struct PreprocessedDocumentation<'s> {
+    pub document: &'s Token<'s>,
+    pub open: &'s Token<'s>,
+    pub property: &'s str,
+    pub property_token: &'s Token<'s>,
+    pub seperator: &'s Token<'s>,
+    pub help_text: &'s str,
+    pub help_text_token: &'s Token<'s>,
+    pub close: &'s Token<'s>,
+}

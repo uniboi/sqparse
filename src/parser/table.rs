@@ -59,7 +59,7 @@ fn json_property_slot(tokens: TokenList) -> ParseResult<TableSlotType> {
         .with_context_from(ContextType::Property, tokens)
 }
 
-fn string_literal(tokens: TokenList) -> ParseResult<(&str, &Token)> {
+pub fn string_literal(tokens: TokenList) -> ParseResult<(&str, &Token)> {
     if let Some((tokens, item)) = tokens.split_first() {
         if let TokenType::Literal(LiteralToken::String(StringToken::Literal(name))) = item.token.ty
         {

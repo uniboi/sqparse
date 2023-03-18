@@ -3,11 +3,11 @@ use crate::ast::{
     ConstructorDefinitionStatement, ContinueStatement, DelayThreadStatement, DoWhileStatement,
     EmptyStatement, EnumDefinitionStatement, ExpressionStatement, ForStatement, ForeachStatement,
     FunctionDefinitionStatement, GlobalStatement, GlobalizeAllFunctionsStatement, IfStatement,
-    Precedence, PreprocessorIfExpression,
-    ReturnStatement, SeparatedList1, Statement, StatementType, StructDefinitionStatement,
-    SwitchStatement, ThreadStatement, ThrowStatement, TryCatchStatement, Type,
-    TypeDefinitionStatement, UntypedStatement, VarDefinition, VarDefinitionStatement,
-    WaitStatement, WaitThreadSoloStatement, WaitThreadStatement, WhileStatement, YieldStatement,
+    Precedence, PreprocessedDocumentation, PreprocessorIfExpression, ReturnStatement,
+    SeparatedList1, Statement, StatementType, StructDefinitionStatement, SwitchStatement,
+    ThreadStatement, ThrowStatement, TryCatchStatement, Type, TypeDefinitionStatement,
+    UntypedStatement, VarDefinition, VarDefinitionStatement, WaitStatement,
+    WaitThreadSoloStatement, WaitThreadStatement, WhileStatement, YieldStatement,
 };
 use crate::parser::class::class_definition;
 use crate::parser::control::{
@@ -28,9 +28,8 @@ use crate::parser::ParseResult;
 use crate::token::{TerminalToken, Token, TokenType};
 use crate::{ContextType, ParseErrorType};
 
-use super::preprocessed::{
-    preprocessed_if, preprocessed_if_contents_terminal,
-};
+use super::preprocessed::{preprocessed_if, preprocessed_if_contents_terminal};
+use super::table::string_literal;
 
 pub fn statement(tokens: TokenList) -> ParseResult<Statement> {
     let (next_tokens, statement) = inner_statement(tokens)?;
@@ -116,6 +115,10 @@ pub fn statement_type(tokens: TokenList) -> ParseResult<StatementType> {
         })
         .or_try(|| untyped_statement(tokens).map_val(StatementType::Untyped))
         .or_try(|| preprocessed_if_statement(tokens).map_val(StatementType::Preprocessed))
+        .or_try(|| {
+            preprocessed_documentation_statement(tokens)
+                .map_val(StatementType::PreprocessedDocumentation)
+        })
         .or_try(|| expression_statement(tokens).map_val(StatementType::Expression))
         .with_context_from(ContextType::Statement, tokens)
         .or_error(|| tokens.error(ParseErrorType::ExpectedStatement))
@@ -156,6 +159,55 @@ pub fn preprocessed_if_statement(
             statement,
         )
     })
+}
+
+pub fn preprocessed_documentation_statement(
+    tokens: TokenList,
+) -> ParseResult<PreprocessedDocumentation> {
+    tokens
+        .terminal(TerminalToken::PreprocessorDocument)
+        .determines(|tokens, document| {
+            let (
+                tokens,
+                (open, close, property, property_token, seperator, help_text, help_text_token),
+            ) = tokens
+                .terminal(TerminalToken::OpenBracket)
+                .determines_and_opens(
+                    ContextType::PreProcessorDocumentationStatement,
+                    |tokens| tokens.terminal(TerminalToken::CloseBracket),
+                    |tokens, open, close| {
+                        let (tokens, (property, property_token)) = string_literal(tokens)?;
+                        let (tokens, seperator) = tokens.terminal(TerminalToken::Comma)?;
+                        let (tokens, (help_text, help_text_token)) = string_literal(tokens)?;
+                        Ok((
+                            tokens,
+                            (
+                                open,
+                                close,
+                                property,
+                                property_token,
+                                seperator,
+                                help_text,
+                                help_text_token,
+                            ),
+                        ))
+                    },
+                )?;
+
+            Ok((
+                tokens,
+                PreprocessedDocumentation {
+                    document,
+                    open,
+                    property,
+                    property_token,
+                    seperator,
+                    help_text,
+                    help_text_token,
+                    close,
+                },
+            ))
+        })
 }
 
 pub fn if_statement(tokens: TokenList) -> ParseResult<IfStatement> {

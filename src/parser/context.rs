@@ -120,6 +120,8 @@ pub enum ContextType {
 	/// ```
 	PreProcessorIf,
 
+	PreProcessorDocumentationStatement,
+
     /// All of an `if` statement.
     ///
     /// # Example
@@ -609,6 +611,7 @@ impl std::fmt::Display for ContextType {
             ContextType::Type => write!(f, "type"),
             ContextType::GenericArgumentList => write!(f, "generic type list"),
             ContextType::PreProcessorIf => write!(f, "preprocessor if"),
+			ContextType::PreProcessorDocumentationStatement => write!(f, "preprocessed documentation statement"),
         }
     }
 }
