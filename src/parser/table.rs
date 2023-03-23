@@ -19,7 +19,7 @@ pub fn possibly_preprocessed_table_slot(
 pub fn preprocessed_table_slot(tokens: TokenList) -> ParseResult<Preprocessable<TableSlot>> {
     let (tokens, preprocessed) = preprocessed_if(tokens, |tokens| {
         tokens.many_until(
-            |tokens| preprocessed_if_contents_terminal(tokens),
+            preprocessed_if_contents_terminal,
             possibly_preprocessed_table_slot,
         )
     })?;

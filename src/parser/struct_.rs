@@ -55,7 +55,7 @@ pub fn preprocessed_struct_properties(
 ) -> ParseResult<Preprocessable<StructProperty>> {
     let (tokens, preprocessed) = preprocessed_if(tokens, |tokens| {
         tokens.many_until(
-            |tokens| preprocessed_if_contents_terminal(tokens),
+            preprocessed_if_contents_terminal,
             possibly_preprocessed_struct_property,
         )
     })?;

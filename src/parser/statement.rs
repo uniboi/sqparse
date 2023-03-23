@@ -154,10 +154,7 @@ pub fn preprocessed_if_statement(
     tokens: TokenList,
 ) -> ParseResult<Box<PreprocessorIfExpression<Vec<Statement>>>> {
     preprocessed_if(tokens, |tokens| {
-        tokens.many_until(
-            |tokens| preprocessed_if_contents_terminal(tokens),
-            statement,
-        )
+        tokens.many_until(preprocessed_if_contents_terminal, statement)
     })
 }
 

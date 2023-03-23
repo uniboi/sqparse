@@ -25,7 +25,7 @@ pub fn array_value(tokens: TokenList) -> ParseResult<Preprocessable<ArrayValue>>
 pub fn preprocessed_array_value(tokens: TokenList) -> ParseResult<Preprocessable<ArrayValue>> {
     let (tokens, preprocessed) = preprocessed_if(tokens, |tokens| {
         tokens.many_until(
-            |tokens| preprocessed_if_contents_terminal(tokens),
+            preprocessed_if_contents_terminal,
             possibly_preprocessed_array_value,
         )
     })?;
