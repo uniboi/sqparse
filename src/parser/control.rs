@@ -14,28 +14,38 @@ use crate::token::{TerminalToken, Token};
 use crate::ContextType;
 
 pub fn if_statement_type(tokens: TokenList) -> ParseResult<IfStatementType> {
-    let (tokens, body) = statement_type(tokens)?;
+    let (tokens, body) = statement_type(tokens).maybe(tokens)?;
+
+    if let None = body {
+        return Ok((tokens, IfStatementType::NoElseTailless));
+    }
 
     // Consume a `;` if this is followed by an `else`.
     let (next_tokens, semicolon) = tokens.terminal(TerminalToken::Semicolon).maybe(tokens)?;
 
     let Ok((tokens, else_)) = next_tokens.terminal(TerminalToken::Else) else {
         // Return the body WITHOUT consuming the `;`.
-        return Ok((tokens, IfStatementType::NoElse { body: Box::new(body) }))
+        return Ok((tokens, IfStatementType::NoElse { body: Box::new(body.unwrap()) }))
     };
 
-    let (tokens, else_body) = statement_type(tokens).definite()?;
-    Ok((
-        tokens,
-        IfStatementType::Else {
-            body: Box::new(Statement {
-                ty: body,
-                semicolon,
-            }),
-            else_,
-            else_body: Box::new(else_body),
-        },
-    ))
+    let body = Box::new(Statement {
+        ty: body.unwrap(),
+        semicolon,
+    });
+
+    // let (tokens, else_body) = statement_type(tokens).definite()?;
+    let (tokens, else_body) = statement_type(tokens).maybe(tokens)?;
+    if let Some(else_body) = else_body {
+        return Ok((
+            tokens,
+            IfStatementType::Else {
+                body,
+                else_,
+                else_body: Box::new(else_body),
+            },
+        ));
+    }
+    Ok((tokens, IfStatementType::ElseTailless { body, else_ }))
 }
 
 pub fn switch_case(tokens: TokenList) -> ParseResult<SwitchCase> {

@@ -16,6 +16,11 @@ pub enum IfStatementType<'s> {
         else_: &'s Token<'s>,
         else_body: Box<StatementType<'s>>,
     },
+	NoElseTailless,
+	ElseTailless {
+		body: Box<Statement<'s>>,
+		else_: &'s Token<'s>,
+	},
 }
 
 /// Case block in a [`SwitchStatement`].
