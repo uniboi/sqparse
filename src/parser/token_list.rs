@@ -1,24 +1,14 @@
 use crate::lexer::TokenItem;
-use crate::Flavor;
 
 #[derive(Debug, Clone, Copy)]
 pub struct TokenList<'s> {
-    flavor: Flavor,
     tokens: &'s [TokenItem<'s>],
     index: usize,
 }
 
 impl<'s> TokenList<'s> {
-    pub fn new(flavor: Flavor, tokens: &'s [TokenItem<'s>]) -> Self {
-        TokenList {
-            flavor,
-            tokens,
-            index: 0,
-        }
-    }
-
-    pub fn flavor(self) -> Flavor {
-        self.flavor
+    pub fn new(tokens: &'s [TokenItem<'s>]) -> Self {
+        TokenList { tokens, index: 0 }
     }
 
     pub fn previous(self) -> Option<&'s TokenItem<'s>> {
@@ -51,7 +41,6 @@ impl<'s> TokenList<'s> {
         self.next().map(|first| {
             (
                 TokenList {
-                    flavor: self.flavor,
                     tokens: self.tokens,
                     index: self.index + 1,
                 },
@@ -64,12 +53,10 @@ impl<'s> TokenList<'s> {
         assert!(index >= self.index);
         (
             TokenList {
-                flavor: self.flavor,
                 tokens: &self.tokens[..index],
                 index: self.index,
             },
             TokenList {
-                flavor: self.flavor,
                 tokens: self.tokens,
                 index,
             },

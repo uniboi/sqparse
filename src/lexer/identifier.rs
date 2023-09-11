@@ -1,12 +1,11 @@
 use crate::lexer::parse_str::ParseStr;
 use crate::token::{TerminalToken, TokenType};
-use crate::Flavor;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 
-pub fn try_identifier(val: ParseStr, flavor: Flavor) -> Option<(TokenType, ParseStr)> {
+pub fn try_identifier(val: ParseStr) -> Option<(TokenType, ParseStr)> {
     let (identifier_str, remaining) = try_identifier_str(val)?;
-    let token_ty = match identifier_as_token(identifier_str, flavor) {
+    let token_ty = match identifier_as_token(identifier_str) {
         Some(terminal) => TokenType::Terminal(terminal),
         None => TokenType::Identifier(identifier_str),
     };
@@ -26,7 +25,7 @@ fn try_identifier_str(val: ParseStr) -> Option<(&str, ParseStr)> {
     Some(val.split_at(val.as_str().find(|c: char| !is_identifier_char(c))))
 }
 
-fn identifier_as_token(identifier: &str, flavor: Flavor) -> Option<TerminalToken> {
+fn identifier_as_token(identifier: &str) -> Option<TerminalToken> {
     lazy_static! {
         static ref IDENTIFIERS_MAP: HashMap<&'static str, TerminalToken> =
             TerminalToken::IDENTIFIERS
@@ -35,8 +34,5 @@ fn identifier_as_token(identifier: &str, flavor: Flavor) -> Option<TerminalToken
                 .collect();
     }
 
-    IDENTIFIERS_MAP
-        .get(identifier)
-        .cloned()
-        .filter(|token| token.is_supported(flavor))
+    IDENTIFIERS_MAP.get(identifier).cloned()
 }

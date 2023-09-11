@@ -5,7 +5,6 @@ use crate::lexer::literal::try_literal;
 use crate::lexer::parse_str::ParseStr;
 use crate::lexer::symbol::try_symbol;
 use crate::token::{Comment, Token, TokenLine, TokenType};
-use crate::Flavor;
 
 macro_rules! try_some {
     ($val:expr) => {
@@ -18,17 +17,15 @@ macro_rules! try_some {
 
 pub struct TokenIter<'s> {
     val: ParseStr<'s>,
-    flavor: Flavor,
     current_token: Option<Token<'s>>,
     before_lines: Vec<TokenLine<'s>>,
     current_line_comments: Vec<Comment<'s>>,
 }
 
 impl<'s> TokenIter<'s> {
-    pub fn new(val: &'s str, flavor: Flavor) -> TokenIter<'s> {
+    pub fn new(val: &'s str) -> TokenIter<'s> {
         TokenIter {
             val: ParseStr::new(val),
-            flavor,
             current_token: None,
             before_lines: Vec::new(),
             current_line_comments: Vec::new(),
@@ -70,9 +67,7 @@ impl<'s> Iterator for TokenIter<'s> {
             } else if let Some((comment, remaining)) = try_some!(try_comment(self.val)) {
                 self.val = remaining;
                 self.current_line_comments.push(comment);
-            } else if let Some((token_ty, remaining)) =
-                try_some!(try_token_ty(self.val, self.flavor))
-            {
+            } else if let Some((token_ty, remaining)) = try_some!(try_token_ty(self.val)) {
                 let token = Token {
                     ty: token_ty,
                     range: self.val.start_offset()..remaining.start_offset(),
@@ -120,17 +115,14 @@ impl<'s> Iterator for TokenIter<'s> {
     }
 }
 
-fn try_token_ty(
-    val: ParseStr,
-    flavor: Flavor,
-) -> Result<Option<(TokenType, ParseStr)>, LexerError> {
+fn try_token_ty(val: ParseStr) -> Result<Option<(TokenType, ParseStr)>, LexerError> {
     if let Some((literal, remaining)) = try_literal(val)? {
         return Ok(Some((TokenType::Literal(literal), remaining)));
     }
-    if let Some((symbol, remaining)) = try_symbol(val, flavor) {
+    if let Some((symbol, remaining)) = try_symbol(val) {
         return Ok(Some((TokenType::Terminal(symbol), remaining)));
     }
-    if let Some((identifier, remaining)) = try_identifier(val, flavor) {
+    if let Some((identifier, remaining)) = try_identifier(val) {
         return Ok(Some((identifier, remaining)));
     }
 

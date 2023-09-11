@@ -1,4 +1,4 @@
-use sqparse::{parse, tokenize, Flavor};
+use sqparse::{parse, tokenize};
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
@@ -38,7 +38,7 @@ fn main() {
         };
 
         let lex_start = Instant::now();
-        let tokens = match tokenize(&file_text, Flavor::SquirrelRespawn) {
+        let tokens = match tokenize(&file_text) {
             Ok(tokens) => tokens,
             Err(err) => {
                 eprintln!("{}", err.display(&file_text, path.to_str()));
@@ -49,7 +49,7 @@ fn main() {
         println!("  tokenize: {lex_secs}s");
 
         let parse_start = Instant::now();
-        if let Err(err) = parse(&tokens, Flavor::SquirrelRespawn) {
+        if let Err(err) = parse(&tokens) {
             eprintln!("{}", err.display(&file_text, &tokens, path.to_str()));
             std::process::exit(1);
         }

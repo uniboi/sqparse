@@ -1,6 +1,5 @@
 use crate::lexer::token_iter::TokenIter;
 use crate::token::{TerminalToken, Token, TokenType};
-use crate::Flavor;
 use std::collections::VecDeque;
 
 mod comment;
@@ -77,11 +76,11 @@ struct Layer<'s> {
 /// let tokens = tokenize(source, Flavor::SquirrelRespawn).unwrap();
 /// assert_eq!(tokens.len(), 29);
 /// ```
-pub fn tokenize(val: &str, flavor: Flavor) -> Result<Vec<TokenItem>, LexerError> {
+pub fn tokenize(val: &str) -> Result<Vec<TokenItem>, LexerError> {
     let mut items = Vec::<TokenItem>::new();
     let mut layers = VecDeque::<Layer>::new();
 
-    for maybe_token in TokenIter::new(val, flavor) {
+    for maybe_token in TokenIter::new(val) {
         let token = maybe_token?;
         let token_index = items.len();
 

@@ -1,9 +1,9 @@
-use sqparse::{parse, tokenize, Flavor};
+use sqparse::{parse, tokenize};
 
 fn main() {
     let source = include_str!("print_ast_script.nut");
 
-    let tokens = match tokenize(source, Flavor::SquirrelRespawn) {
+    let tokens = match tokenize(source) {
         Ok(tokens) => tokens,
         Err(err) => {
             eprintln!("{}", err.display(source, Some("print_ast_script.nut")));
@@ -11,7 +11,7 @@ fn main() {
         }
     };
 
-    let ast = match parse(&tokens, Flavor::SquirrelRespawn) {
+    let ast = match parse(&tokens) {
         Ok(ast) => ast,
         Err(err) => {
             eprintln!(

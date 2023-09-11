@@ -10,22 +10,12 @@
 //!
 //! [`Identifier`]: TokenType::Identifier
 
-use crate::Flavor;
 use std::ops::Range;
-
-macro_rules! _terminal_matches {
-    ($ask_flavor:ident) => {
-        true
-    };
-    ($ask_flavor:ident $actual_flavor:expr) => {
-        $actual_flavor == $ask_flavor
-    };
-}
 
 macro_rules! define_terminals {
     (
-        identifiers { $($id_name:ident => $id_val:literal $(if $id_flavor:expr)?),+ }
-        symbols { $($sy_name:ident => $sy_val:literal $(if $sy_flavor:expr)?),+ }
+        identifiers { $($id_name:ident => $id_val:literal),+ }
+        symbols { $($sy_name:ident => $sy_val:literal),+ }
     ) => {
         /// An atomic symbol or reserved identifier.
         #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
@@ -61,14 +51,6 @@ macro_rules! define_terminals {
                 match self {
                     $(TerminalToken::$id_name => $id_val),+,
                     $(TerminalToken::$sy_name => $sy_val),+
-                }
-            }
-
-            /// `true` if the terminal is supported by the Squirrel flavor.
-            pub fn is_supported(self, flavor: Flavor) -> bool {
-                match self {
-                    $(TerminalToken::$id_name => _terminal_matches!(flavor $($id_flavor)?)),+,
-                    $(TerminalToken::$sy_name => _terminal_matches!(flavor $($sy_flavor)?)),+
                 }
             }
         }
@@ -110,19 +92,19 @@ define_terminals! {
         Static => "static",
 
         // _re extensions
-        DelayThread => "delaythread"                        if Flavor::SquirrelRespawn,
-        Expect => "expect"                                  if Flavor::SquirrelRespawn,
-        FunctionRef => "functionref"                        if Flavor::SquirrelRespawn,
-        Global => "global"                                  if Flavor::SquirrelRespawn,
-        GlobalizeAllFunctions => "globalize_all_functions"  if Flavor::SquirrelRespawn,
-        OrNull => "ornull"                                  if Flavor::SquirrelRespawn,
-        Struct => "struct"                                  if Flavor::SquirrelRespawn,
-        Thread => "thread"                                  if Flavor::SquirrelRespawn,
-        Typedef => "typedef"                                if Flavor::SquirrelRespawn,
-        Untyped => "untyped"                                if Flavor::SquirrelRespawn,
-        WaitThread => "waitthread"                          if Flavor::SquirrelRespawn,
-        WaitThreadSolo => "waitthreadsolo"                  if Flavor::SquirrelRespawn,
-        Wait => "wait"                                      if Flavor::SquirrelRespawn
+        DelayThread => "delaythread",
+        Expect => "expect",
+        FunctionRef => "functionref",
+        Global => "global",
+        GlobalizeAllFunctions => "globalize_all_functions",
+        OrNull => "ornull",
+        Struct => "struct",
+        Thread => "thread",
+        Typedef => "typedef",
+        Untyped => "untyped",
+        WaitThread => "waitthread",
+        WaitThreadSolo => "waitthreadsolo",
+        Wait => "wait"
     }
 
     symbols {
