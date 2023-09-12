@@ -10,6 +10,7 @@ mod global;
 mod identifier;
 mod operator;
 mod parse_result_ext;
+mod rui;
 mod slot;
 mod statement;
 mod struct_;

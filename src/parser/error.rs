@@ -145,6 +145,9 @@ pub enum ParseErrorType {
 
     /// Expected a string literal.
     ExpectedStringLiteral,
+
+    /// Expected an rui parent
+    ExpectedRuiParent,
 }
 
 /// An error emitted while trying to parse a token list.
@@ -371,6 +374,7 @@ impl std::fmt::Display for ParseErrorType {
                 write!(f, "expected anything but `\\n`; got it anyway")
             }
             ParseErrorType::Precedence => write!(f, "not allowed due to precedence rules"),
+            ParseErrorType::ExpectedRuiParent => write!(f, "expected an rui parent expression"),
         }
     }
 }

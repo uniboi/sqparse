@@ -3,7 +3,7 @@ use crate::ast::{
     ConstructorDefinitionStatement, ContinueStatement, DelayThreadStatement, DoWhileStatement,
     EmptyStatement, EnumDefinitionStatement, ExpressionStatement, ForStatement, ForeachStatement,
     FunctionDefinitionStatement, GlobalStatement, GlobalizeAllFunctionsStatement, IfStatement,
-    Precedence, ReturnStatement, SeparatedList1, Statement, StatementType,
+    Precedence, ReturnStatement, RuiDefinitionStatement, SeparatedList1, Statement, StatementType,
     StructDefinitionStatement, SwitchStatement, ThreadStatement, ThrowStatement, TryCatchStatement,
     Type, TypeDefinitionStatement, UntypedStatement, VarDefinition, VarDefinitionStatement,
     WaitStatement, WaitThreadSoloStatement, WaitThreadStatement, WhileStatement, YieldStatement,
@@ -18,6 +18,7 @@ use crate::parser::function::function_definition;
 use crate::parser::global::global_definition;
 use crate::parser::identifier::identifier;
 use crate::parser::parse_result_ext::ParseResultExt;
+use crate::parser::rui::{rui_definition_params, rui_render_definitions};
 use crate::parser::struct_::struct_definition;
 use crate::parser::token_list::TokenList;
 use crate::parser::token_list_ext::TokenListExt;
@@ -78,41 +79,97 @@ pub fn statement_type(tokens: TokenList) -> ParseResult<StatementType> {
         ));
     }
 
-    // `typed_function_or_var_definition_statement` must be first to ensure the return type is
-    // parsed properly.
-    typed_function_or_var_definition_statement(tokens)
+    rui_definition_statement(tokens)
+        .map_val(StatementType::RuiDefinition)
         .or_try(|| block_statement(tokens).map_val(StatementType::Block))
-        .or_try(|| if_statement(tokens).map_val(StatementType::If))
-        .or_try(|| while_statement(tokens).map_val(StatementType::While))
-        .or_try(|| do_while_statement(tokens).map_val(StatementType::DoWhile))
-        .or_try(|| switch_statement(tokens).map_val(StatementType::Switch))
-        .or_try(|| for_statement(tokens).map_val(StatementType::For))
-        .or_try(|| foreach_statement(tokens).map_val(StatementType::Foreach))
-        .or_try(|| try_catch_statement(tokens).map_val(StatementType::TryCatch))
-        .or_try(|| break_statement(tokens).map_val(StatementType::Break))
-        .or_try(|| continue_statement(tokens).map_val(StatementType::Continue))
-        .or_try(|| return_statement(tokens).map_val(StatementType::Return))
-        .or_try(|| yield_statement(tokens).map_val(StatementType::Yield))
-        .or_try(|| throw_statement(tokens).map_val(StatementType::Throw))
-        .or_try(|| const_definition_statement(tokens).map_val(StatementType::Const))
-        .or_try(|| class_definition_statement(tokens).map_val(StatementType::ClassDefinition))
-        .or_try(|| enum_definition_statement(tokens).map_val(StatementType::EnumDefinition))
-        .or_try(|| void_function_definition_statement(tokens))
-        .or_try(|| struct_definition_statement(tokens).map_val(StatementType::StructDefinition))
-        .or_try(|| type_definition_statement(tokens).map_val(StatementType::TypeDefinition))
-        .or_try(|| thread_statement(tokens).map_val(StatementType::Thread))
-        .or_try(|| delay_thread_statement(tokens).map_val(StatementType::DelayThread))
-        .or_try(|| wait_thread_statement(tokens).map_val(StatementType::WaitThread))
-        .or_try(|| wait_thread_solo_statement(tokens).map_val(StatementType::WaitThreadSolo))
-        .or_try(|| wait_statement(tokens).map_val(StatementType::Wait))
-        .or_try(|| global_statement(tokens).map_val(StatementType::Global))
-        .or_try(|| {
-            globalize_all_functions_statement(tokens).map_val(StatementType::GlobalizeAllFunctions)
-        })
-        .or_try(|| untyped_statement(tokens).map_val(StatementType::Untyped))
-        .or_try(|| expression_statement(tokens).map_val(StatementType::Expression))
+        .or_try(|| variable_definition_statement(tokens).map_val(StatementType::VarDefinition))
         .with_context_from(ContextType::Statement, tokens)
         .or_error(|| tokens.error(ParseErrorType::ExpectedStatement))
+
+    //    // `typed_function_or_var_definition_statement` must be first to ensure the return type is
+    //    // parsed properly.
+    //    typed_function_or_var_definition_statement(tokens)
+    //        .or_try(|| block_statement(tokens).map_val(StatementType::Block))
+    //        .or_try(|| if_statement(tokens).map_val(StatementType::If))
+    //        .or_try(|| while_statement(tokens).map_val(StatementType::While))
+    //        .or_try(|| do_while_statement(tokens).map_val(StatementType::DoWhile))
+    //        .or_try(|| switch_statement(tokens).map_val(StatementType::Switch))
+    //        .or_try(|| for_statement(tokens).map_val(StatementType::For))
+    //        .or_try(|| foreach_statement(tokens).map_val(StatementType::Foreach))
+    //        .or_try(|| try_catch_statement(tokens).map_val(StatementType::TryCatch))
+    //        .or_try(|| break_statement(tokens).map_val(StatementType::Break))
+    //        .or_try(|| continue_statement(tokens).map_val(StatementType::Continue))
+    //        .or_try(|| return_statement(tokens).map_val(StatementType::Return))
+    //        .or_try(|| yield_statement(tokens).map_val(StatementType::Yield))
+    //        .or_try(|| throw_statement(tokens).map_val(StatementType::Throw))
+    //        .or_try(|| const_definition_statement(tokens).map_val(StatementType::Const))
+    //        .or_try(|| class_definition_statement(tokens).map_val(StatementType::ClassDefinition))
+    //        .or_try(|| enum_definition_statement(tokens).map_val(StatementType::EnumDefinition))
+    //        .or_try(|| void_function_definition_statement(tokens))
+    //        .or_try(|| struct_definition_statement(tokens).map_val(StatementType::StructDefinition))
+    //        .or_try(|| type_definition_statement(tokens).map_val(StatementType::TypeDefinition))
+    //        .or_try(|| thread_statement(tokens).map_val(StatementType::Thread))
+    //        .or_try(|| delay_thread_statement(tokens).map_val(StatementType::DelayThread))
+    //        .or_try(|| wait_thread_statement(tokens).map_val(StatementType::WaitThread))
+    //        .or_try(|| wait_thread_solo_statement(tokens).map_val(StatementType::WaitThreadSolo))
+    //        .or_try(|| wait_statement(tokens).map_val(StatementType::Wait))
+    //        .or_try(|| global_statement(tokens).map_val(StatementType::Global))
+    //        .or_try(|| {
+    //            globalize_all_functions_statement(tokens).map_val(StatementType::GlobalizeAllFunctions)
+    //        })
+    //        .or_try(|| untyped_statement(tokens).map_val(StatementType::Untyped))
+    //        .or_try(|| expression_statement(tokens).map_val(StatementType::Expression))
+    //        .with_context_from(ContextType::Statement, tokens)
+    //        .or_error(|| tokens.error(ParseErrorType::ExpectedStatement))
+}
+
+pub fn rui_definition_statement(tokens: TokenList) -> ParseResult<RuiDefinitionStatement> {
+    tokens
+        .terminal(TerminalToken::Rui)
+        .and_then(|(tokens, rui)| identifier(tokens).map_val(|name| (rui, name)))
+        .determines(|tokens, (rui, name)| {
+            println!("{rui:?}, {name:?}");
+
+            let (tokens, (open, params, close)) =
+                tokens.terminal(TerminalToken::OpenBracket).opens(
+                    ContextType::RuiDefinitionParamList,
+                    |tokens| tokens.terminal(TerminalToken::CloseBracket),
+                    |tokens, open, close| {
+                        let (tokens, params) = rui_definition_params(tokens)?;
+                        Ok((tokens, (open, params, close)))
+                    },
+                )?;
+
+            let (tokens, render_definitions) = rui_render_definitions(tokens)?;
+            let (tokens, body) = block_statement(tokens)?;
+
+            Ok((
+                tokens,
+                RuiDefinitionStatement {
+                    rui,
+                    name,
+                    open,
+                    params,
+                    close,
+                    render_definitions,
+                    body,
+                },
+            ))
+        })
+}
+
+pub fn variable_definition_statement(tokens: TokenList) -> ParseResult<VarDefinitionStatement> {
+    let (tokens, type_) = type_(tokens)?;
+    identifier(tokens).determines(|tokens, name| {
+        let (tokens, initializer) = var_initializer(tokens).maybe(tokens)?;
+        let first_definition = VarDefinition { name, initializer };
+        let (tokens, definitions) =
+            tokens.separated_list_trailing1_init(first_definition, var_definition, |tokens| {
+                tokens.terminal(TerminalToken::Comma)
+            })?;
+
+        Ok((tokens, VarDefinitionStatement { type_, definitions }))
+    })
 }
 
 pub fn expression_statement(tokens: TokenList) -> ParseResult<ExpressionStatement> {

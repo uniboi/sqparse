@@ -104,7 +104,12 @@ define_terminals! {
         Untyped => "untyped",
         WaitThread => "waitthread",
         WaitThreadSolo => "waitthreadsolo",
-        Wait => "wait"
+        Wait => "wait",
+
+        // rui
+        Rui => "rui",
+        Self_ => "self",
+        Topology => "topology"
     }
 
     symbols {

@@ -544,6 +544,11 @@ pub enum ContextType {
     ///      ^^^^^^^^^^^^^^^^^ generic argument list
     /// ```
     GenericArgumentList,
+
+    RuiDefinition,
+    RuiDefinitionParamList,
+    RuiRenderDefinitionList,
+    RuiRenderParameterList,
 }
 
 impl std::fmt::Display for ContextType {
@@ -598,6 +603,10 @@ impl std::fmt::Display for ContextType {
             ContextType::FunctionCaptureList => write!(f, "function capture list"),
             ContextType::Type => write!(f, "type"),
             ContextType::GenericArgumentList => write!(f, "generic type list"),
+            ContextType::RuiDefinition => write!(f, "rui definition"),
+            ContextType::RuiDefinitionParamList => write!(f, "rui parameter list"),
+            ContextType::RuiRenderDefinitionList => write!(f, "rui render definition list"),
+            ContextType::RuiRenderParameterList => write!(f, "rui render parameter list"),
         }
     }
 }

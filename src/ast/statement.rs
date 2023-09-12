@@ -5,6 +5,8 @@ use crate::ast::{
 };
 use crate::token::Token;
 
+use super::{RenderDefinition, RuiParam, SeparatedListTrailing0};
+
 /// A statement.
 ///
 /// A Squirrel program is made up of a list of statements. Statements are either separated by
@@ -53,6 +55,9 @@ pub enum StatementType<'s> {
     Global(GlobalStatement<'s>),
     GlobalizeAllFunctions(GlobalizeAllFunctionsStatement<'s>),
     Untyped(UntypedStatement<'s>),
+
+    // rui
+    RuiDefinition(RuiDefinitionStatement<'s>),
 }
 
 /// An empty statement.
@@ -378,4 +383,22 @@ pub struct GlobalizeAllFunctionsStatement<'s> {
 #[derive(Debug, Clone)]
 pub struct UntypedStatement<'s> {
     pub untyped: &'s Token<'s>,
+}
+
+#[derive(Debug, Clone)]
+pub struct RuiDefinitionStatement<'s> {
+    pub rui: &'s Token<'s>,
+    pub name: Identifier<'s>,
+    pub open: &'s Token<'s>,
+    pub params: SeparatedListTrailing0<'s, RuiParam<'s>>,
+    pub close: &'s Token<'s>,
+    pub render_definitions: RuiRenderDefinitionsStatement<'s>,
+    pub body: BlockStatement<'s>,
+}
+
+#[derive(Debug, Clone)]
+pub struct RuiRenderDefinitionsStatement<'s> {
+    pub open: &'s Token<'s>,
+    pub defs: Vec<RenderDefinition<'s>>,
+    pub close: &'s Token<'s>,
 }
